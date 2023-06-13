@@ -47,7 +47,7 @@ def loadr():
     train_list=[['id','label']]
     val_list=[['id','label']]
     for ds in data_sets:
-      for root, dirs, files in os.walk("/content/mydata/"+ds, topdown=False):
+      for root, dirs, files in os.walk("mydata/"+ds, topdown=False):
         for name in files:
           if name.endswith(('.jpg', '.jpeg', '.gif', '.png')):
               img_path=os.path.join(root, name)
