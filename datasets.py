@@ -8,11 +8,91 @@ import json
 
 from torchvision import datasets, transforms
 from torchvision.datasets.folder import ImageFolder, default_loader
-
+import torch
+import fnmatch
+import numpy as np
+import pandas as pd
+from PIL import Image
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data import create_transform
-
+from torch.utils.data import Dataset
+from torchvision.io import read_image
 from folder2lmdb import ImageFolderLMDB
+
+class BtDataset(Dataset):
+    def __init__(self, data_arr, img_dir, transform=None, target_transform=None):
+        self.img_info = data_arr
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+        self.dirs=os.listdir(img_dir)
+        self.dirs.sort()
+
+    def __len__(self):
+        return len(self.img_info)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir,self.dirs[int(self.img_info.iloc[idx, 1])], self.img_info.iloc[idx, 0])
+        image = read_image(img_path)
+        label = torch.tensor(int(self.img_info.iloc[idx, 1]))
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label
+    
+def loadr():
+    
+    data_sets=["train","val"]
+    train_list=[['id','label']]
+    val_list=[['id','label']]
+    for ds in data_sets:
+      for root, dirs, files in os.walk("/content/mydata/"+ds, topdown=False):
+        for name in files:
+          if name.endswith(('.jpg', '.jpeg', '.gif', '.png')):
+              img_path=os.path.join(root, name)
+            
+              j=img_path
+              pattern = 'glioma'
+              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
+                a = np.array([[name,'0']]) 
+              pattern = 'meningioma'
+              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
+                a = np.array([[name,'1']])
+              pattern = 'normal'
+              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
+                a = np.array([[name,'2']]) 
+              pattern = 'pituitary'
+              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
+                a = np.array([[name,'3']]) 
+              if ds=="train":
+                train_list=np.append(train_list,a, axis=0)
+              else:
+                val_list=np.append(val_list,a, axis=0)
+    
+    train_pd=pd.DataFrame(train_list[1:None],columns = ['id','label'])
+    val_pd=pd.DataFrame(val_list[1:None],columns = ['id','label'])
+    
+    
+    val_transform = transforms.Compose([transforms.ToPILImage(),
+                                        transforms.Resize((224,224)),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784])
+                                        ])
+    # For training, we add some augmentation. Networks are too powerful and would overfit.
+    train_transform = transforms.Compose([transforms.ToPILImage(),
+                                          transforms.Resize((224,224)),
+                                          transforms.RandomHorizontalFlip(),
+                                          transforms.RandomRotation(degrees=0.02),
+                                          transforms.ToTensor(),
+                                          transforms.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784])
+                                         ])
+    training_data = BtDataset(data_arr=train_pd,img_dir='mydata/train',transform=train_transform)
+    val_data = BtDataset(data_arr=val_pd,img_dir='mydata/val',transform=val_transform)
+    #train_dataloader = DataLoader(training_data, batch_size=32, shuffle=True)
+    #val_dataloader = DataLoader(val_data, batch_size=32, shuffle=True)
+    
+    return training_data, val_data
 
 
 class INatDataset(ImageFolder):
@@ -94,8 +174,13 @@ def build_dataset(is_train, args):
         dataset = INatDataset(args.data_path, train=is_train, year=2019,
                               category=args.inat_category, transform=transform)
         nb_classes = dataset.nb_classes
+    elif args.data_set == 'bt':
+        nb_classes = 3
+        img_mean, img_std = (0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821)
+        img_size = 72
+        train_dataset,val_dataset= loadr()
 
-    return dataset, nb_classes
+    return train_dataset,val_dataset, nb_classes
 
 
 def build_transform(is_train, args):
