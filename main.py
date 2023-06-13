@@ -148,9 +148,9 @@ def get_args_parser():
     parser.add_argument('--finetune', default='', help='finetune from checkpoint')
 
     # Dataset parameters
-    parser.add_argument('--data-path', default='/datasets01/imagenet_full_size/061417/', type=str,
+    parser.add_argument('--data-path', default='/mydata/', type=str,
                         help='dataset path')
-    parser.add_argument('--data-set', default='IMNET', choices=['CIFAR', 'IMNET', 'INAT', 'INAT19', 'CIFAR-10', 
+    parser.add_argument('--data-set', default='bt', choices=['bt','CIFAR', 'IMNET', 'INAT', 'INAT19', 'CIFAR-10', 
                         'clipart', 'infograph', 'painting', 'quickdraw', 'real', 'sketch'],
                         type=str, help='Image Net dataset path')
     parser.add_argument('--use-lmdb', action='store_true', help='use Image Net lmdb dataset (for data-set==IMNET)')
@@ -205,9 +205,9 @@ def main(args):
 
     cudnn.benchmark = True
     
-    dataset_train, args.nb_classes = build_dataset(is_train=True, args=args)
-    dataset_val, _ = build_dataset(is_train=False, args=args)
-    
+    #dataset_train, args.nb_classes = build_dataset(is_train=True, args=args)
+    #dataset_val, _ = build_dataset(is_train=False, args=args)
+    dataset_train,dataset_val, args.nb_classes = build_dataset(is_train=True, args=args
     if True:  # args.distributed:
         num_tasks = utils.get_world_size()
         global_rank = utils.get_rank()
