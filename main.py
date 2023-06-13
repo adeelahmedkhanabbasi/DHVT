@@ -207,7 +207,7 @@ def main(args):
     
     #dataset_train, args.nb_classes = build_dataset(is_train=True, args=args)
     #dataset_val, _ = build_dataset(is_train=False, args=args)
-    dataset_train,dataset_val, args.nb_classes = build_dataset(is_train=True, args=args
+    dataset_train,dataset_val, args.nb_classes = build_dataset(is_train=True, args=args)
     if True:  # args.distributed:
         num_tasks = utils.get_world_size()
         global_rank = utils.get_rank()
