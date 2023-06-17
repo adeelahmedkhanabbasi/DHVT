@@ -53,18 +53,12 @@ def loadr():
               img_path=os.path.join(root, name)
             
               j=img_path
-              pattern = 'glioma'
+              pattern = 'Normal'
               if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
                 a = np.array([[name,'0']]) 
-              pattern = 'meningioma'
+              pattern = 'Sick'
               if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
                 a = np.array([[name,'1']])
-              pattern = 'normal'
-              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
-                a = np.array([[name,'2']]) 
-              pattern = 'pituitary'
-              if fnmatch.filter((j[i:i+len(pattern)] for i in range(len(j) - len(pattern))), pattern):
-                a = np.array([[name,'3']]) 
               if ds=="train":
                 train_list=np.append(train_list,a, axis=0)
               else:
